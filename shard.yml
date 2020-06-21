@@ -1,0 +1,15 @@
+name: bcdb
+version: 0.1.0
+
+authors:
+  - hamdy <hamdy.a.farag@gmail.com>
+
+dependencies:
+  crest:
+    github: mamantoha/crest
+  mnemonic:
+    github: crystaluniverse/mnemonic.cr
+
+crystal: 0.34.0
+
+license: MIT
