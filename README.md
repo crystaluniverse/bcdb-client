@@ -19,11 +19,12 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
 ```crystal
 require "bcdb"
 
-seed_phrase = %(finger feel food anchor morning benefit stable gesture kiwi tortoise amount glide deputy cake party few canyon title effort gentle route tape gallery over)
+c = Bcdb::Client.new unixsocket: "/tmp/bcdb.sock", db: "db", namespace: "example" 
+tags = {"example" => "value", "tag2" => "v2"}
+key = c.put("a", tags)
 
-threebot_id = 40
-    
-c = Bcdb::Client.new("http://127.0.0.1:50061/db/koko", threebot_id, seed_phrase)
-key = c.put("a", {"a" => "a", "b" => "b"}.to_json)
-c.get(key).should eq({"a" => "a", "b" => "b"}.to_json)
+res = c.get(key)
+res["data"].should eq "a"
+res["tags"]["example"].should eq "value"
+res["tags"]["tag2"].should eq "v2"
 ```
