@@ -37,4 +37,8 @@ res = c.get(key)
 res["data"].should eq "b"
 res["tags"]["example"].should eq "value"
 res["tags"]["tag2"].should eq "v2"
+
+# Delete
+c.delete(key)
+c.get(key)  =>  Bcdb::NotFoundError
 ```

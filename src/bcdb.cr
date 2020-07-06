@@ -66,8 +66,29 @@ module Bcdb
           raise Bcdb::NotFoundError.new "not found"
         end
         tags = JSON.parse(res.headers["x-tags"])
+        tags_dict =  tags.as_h
+        
         {"data" => res.body, "tags": tags}
       end
     end
+
+    def delete(key : Int32|Int64|UInt64)
+      UNIXSocket.open(@unixsocket) do |io|
+        request = HTTP::Request.new(
+          "DELETE",
+          "#{@path}/#{key.to_s}",
+           headers: HTTP::Headers{
+             "X-Unix-Socket" => @unixsocket,
+             "Content-Type" => "application/json",
+           }
+        )
+        request.to_io(io)
+        res = HTTP::Client::Response.from_io(io)
+        if res.status_code != 200
+          raise Bcdb::NotFoundError.new "not found"
+        end
+      end
+    end
+
   end
 end

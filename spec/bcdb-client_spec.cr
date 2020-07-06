@@ -20,6 +20,14 @@ describe Bcdb::Client do
     res["tags"]["example"].should eq "value"
     res["tags"]["tag2"].should eq "v2"
 
+    c.delete(key)
+    begin
+      res = c.get(key)
+      raise "Should have raised exception"
+    rescue exception
+      Bcdb::NotFoundError
+    end
+    
     begin
       c.get(1100)
       raise "Should have raised exception"
