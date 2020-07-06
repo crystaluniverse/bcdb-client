@@ -30,15 +30,34 @@ module Bcdb
         )
         request.to_io(io)
         resp = HTTP::Client::Response.from_io(io).body
-        resp.to_i32
+        resp.to_u64
       end
     end
 
-    def get(id : Int32)
+    def update(key : Int32|Int64|UInt64, value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new)
+      UNIXSocket.open(@unixsocket) do |io|
+        request = HTTP::Request.new(
+          "PUT",
+          "#{@path}/#{key.to_s}",
+           headers: HTTP::Headers{
+             "X-Unix-Socket" => @unixsocket,
+             "Content-Type" => "application/json",
+             "x-tags" => tags.to_json
+           }, body: value
+        )
+        request.to_io(io)
+        res = HTTP::Client::Response.from_io(io)
+        if res.status_code != 200
+          raise Bcdb::NotFoundError.new "not found"
+        end
+      end
+    end
+
+    def get(key : Int32|Int64|UInt64)
       UNIXSocket.open(@unixsocket) do |io|
         request = HTTP::Request.new(
           "GET",
-           "#{@path}/#{id.to_s}",
+           "#{@path}/#{key.to_s}",
            headers: HTTP::Headers{"X-Unix-Socket" => @unixsocket, "Content-Type" => "application/json"}
         )
         request.to_io(io)

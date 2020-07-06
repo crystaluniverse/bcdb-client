@@ -13,6 +13,13 @@ describe Bcdb::Client do
     res["tags"]["example"].should eq "value"
     res["tags"]["tag2"].should eq "v2"
 
+    c.update(key, "b", tags)
+
+    res = c.get(key)
+    res["data"].should eq "b"
+    res["tags"]["example"].should eq "value"
+    res["tags"]["tag2"].should eq "v2"
+
     begin
       c.get(1100)
       raise "Should have raised exception"
