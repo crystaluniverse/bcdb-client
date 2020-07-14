@@ -41,4 +41,8 @@ res["tags"]["tag2"].should eq "v2"
 # Delete
 c.delete(key)
 c.get(key)  =>  Bcdb::NotFoundError
+
+# find
+res = c.find({"example" => "value"})
+puts res => [1,2,3] 
 ```

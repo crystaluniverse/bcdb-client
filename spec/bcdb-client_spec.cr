@@ -3,9 +3,11 @@ require "json"
 
 describe Bcdb::Client do
   it "works" do
+
     
     c = Bcdb::Client.new unixsocket: "/tmp/bcdb.sock", db: "db", namespace: "example" 
     tags = {"example" => "value", "tag2" => "v2"}
+
     key = c.put("a", tags)
     
     res = c.get(key)
@@ -19,6 +21,14 @@ describe Bcdb::Client do
     res["data"].should eq "b"
     res["tags"]["example"].should eq "value"
     res["tags"]["tag2"].should eq "v2"
+
+    res = c.fetch(key)
+    res["data"].should eq "b"
+    res["tags"]["example"].should eq "value"
+    res["tags"]["tag2"].should eq "v2"
+
+    res = c.find({"example" => "value"})
+    puts res
 
     c.delete(key)
     begin
