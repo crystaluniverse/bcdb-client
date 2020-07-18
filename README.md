@@ -9,7 +9,7 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
    ```yaml
    dependencies:
      bcdb:
-       github: crystaluniverse/bcdb-rest.cr
+       github: crystaluniverse/bcdb-client
    ```
 
 2. Run `shards install`
