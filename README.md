@@ -2,6 +2,9 @@
 
 Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
 
+## Run tests
+- `crystal spec spec/bcdb-client_spec.cr`
+
 ## Installation
 
 1. Add the dependency to your `shard.yml`:
@@ -9,12 +12,29 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
    ```yaml
    dependencies:
      bcdb:
-       github: crystaluniverse/bcdb-rest.cr
+       github: crystaluniverse/bcdb-client
    ```
 
 2. Run `shards install`
 
 ## Usage
+
+##### Download, compile & run 0-db (Backend for BCDB)
+- `git clone git@github.com:threefoldtech/0-db.git`
+- `cd 0-db && make`
+- `./zdb --mode seq`
+
+##### Download, compile & run BCDB (Backend for BCDB)
+- Install [Rust programming language](https://www.rust-lang.org/tools/install)
+- `git clone git@github.com:threefoldtech/bcdb.git`
+- `cd bcdb && make`
+- copy bcdb binary anywhere `cp bcdb/target/x86_64-unknown-linux-musl/release/bcdb .`
+- download `tfuser` utility from [here](https://github.com/crystaluniverse/bcdb-client/releases/download/v0.1/tfuser)
+- use `tfuser` to register your 3bot user to explorer and generate seed file `usr.seed` using `./tfuser id create --name {3bot_username.3bot} --email {email}`
+- run bcdb : `./bcdb --seed-file user.seed `
+- now you can talk to `bcdb` through http via unix socket `/tmp/bcdb.sock`
+
+##### Use the library in your application
 
 ```crystal
 require "bcdb"
