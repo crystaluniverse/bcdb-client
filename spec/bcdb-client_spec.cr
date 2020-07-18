@@ -1,49 +1,43 @@
 require "./spec_helper"
 require "json"
+require "uuid"
 
 describe Bcdb::Client do
   it "works" do
 
     
-    c = Bcdb::Client.new unixsocket: "/tmp/bcdb.sock", db: "db", namespace: "example" 
-    tags = {"example" => "value", "tag2" => "v2"}
-
-    key = c.put("a", tags)
+    client = Bcdb::Client.new unixsocket: "/tmp/bcdb.sock", db: "db", namespace: "example" 
+    random_tag = "#{UUID.random.to_s}"
+    tags = {"example" => random_tag, "tag2" => "v2"}
     
-    res = c.get(key)
+    key = client.put("a", tags)
+    
+    res = client.get(key)
     res["data"].should eq "a"
-    res["tags"]["example"].should eq "value"
+    res["tags"]["example"].should eq random_tag
     res["tags"]["tag2"].should eq "v2"
 
-    c.update(key, "b", tags)
+    client.update(key, "b", tags)
 
-    res = c.get(key)
+    res = client.get(key)
     res["data"].should eq "b"
-    res["tags"]["example"].should eq "value"
+    res["tags"]["example"].should eq random_tag
     res["tags"]["tag2"].should eq "v2"
 
-    res = c.fetch(key)
+    res = client.fetch(key)
     res["data"].should eq "b"
-    res["tags"]["example"].should eq "value"
+    res["tags"]["example"].should eq random_tag
     res["tags"]["tag2"].should eq "v2"
 
-    res = c.find({"example" => "value"})
-    puts res
+    res = client.find({"example" => random_tag})
+    res.should eq [key]
 
-    c.delete(key)
+    client.delete(key)
     begin
-      res = c.get(key)
+      res = client.get(key)
       raise "Should have raised exception"
     rescue exception
       Bcdb::NotFoundError
-    end
-    
-    begin
-      c.get(1100)
-      raise "Should have raised exception"
-    rescue exception
-    end
-
-
+    end  
   end
 end
