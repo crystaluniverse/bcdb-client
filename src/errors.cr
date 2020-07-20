@@ -1,0 +1,1 @@
+class Bcdb::NoFreeConnectionsError < IO::Error; end

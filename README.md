@@ -36,6 +36,10 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
 
 ##### Use the library in your application
 
+**WARNING**
+
+bcdb can have currently one database called `db` any attempt to use a different db name will fail, but you can freely use any `namespace` name you'd like
+
 ```crystal
 require "bcdb"
 
