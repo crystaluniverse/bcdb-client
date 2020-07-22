@@ -207,14 +207,12 @@ module Bcdb
           @pool.release client.id
           return ids
         rescue IO::Error
-          if i == 3
-            raise IO::Error.new "Connection lost"
-          end
           pp! "connection Error. creating another connection"
           @pool.connections.delete(client.id)
           @pool.create
           client = @pool.get
         end
+        raise IO::Error.new "Connection lost"
       end
   end
 end
