@@ -162,8 +162,8 @@ module Bcdb
       ids = []of UInt64
       client = @pool.get
       client.get "#{@path}?#{query}", headers: HTTP::Headers{"X-Unix-Socket" => @unixsocket, "Content-Type" => "application/json"} do |response|
-      c = 0  
-      while gets = response.body_io.gets('\r', chomp: false)
+      c = 0 
+      while gets = response.body_io.gets('\n', chomp: true)
           io = IO::Memory.new(gets)
           parser = JSON::Parser.new(io)
           item = parser.parse_one
