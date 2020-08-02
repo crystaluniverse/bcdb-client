@@ -29,6 +29,37 @@ describe Bcdb::Client do
     res["tags"]["example"].should eq random_tag
     res["tags"]["tag2"].should eq "v2"
 
+    acl = client.acl.set("r--", [1,2])
+    res = client.acl.get(acl)
+    pp! res
+    res["permission"].should eq "r--"
+    res["users"].size.should eq 2
+    res["users"].as(Array(Int32)).sort.should eq [1,2]
+    
+    res = client.acl.update(acl, "rwd")
+    res = client.acl.get(acl)
+    res["permission"].should eq "rwd"
+    res["users"].size.should eq 2
+    res["users"].as(Array(Int32)).sort.should eq [1,2]
+   
+
+    res = client.acl.grant(acl, [3,4])
+    res = client.acl.get(acl)
+    res["permission"].should eq "rwd"
+    res["users"].size.should eq 4
+    
+    res["users"].as(Array(Int32)).sort.should eq [1,2, 3, 4]
+
+    res = client.acl.revoke(acl, [1,4])
+    res = client.acl.get(acl)
+    res["permission"].should eq "rwd"
+    res["users"].size.should eq 2
+    
+    res["users"].as(Array(Int32)).sort.should eq [2, 3]
+
+    pp! client.acl.list
+
+
     (0..100).each do |_|
       res = client.find({"example" => random_tag})
     end

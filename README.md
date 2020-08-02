@@ -69,4 +69,18 @@ c.get(key)  =>  Bcdb::NotFoundError
 # find
 res = c.find({"example" => "value"})
 puts res => [1,2,3] 
+
+# Acls
+
+acl = client.acl.set("r--", [1,2])
+res = client.acl.get(acl)
+pp! res => {"permission" => "r--", "users" => [1, 2]}
+
+client.acl.update(acl, "rwd")
+client.acl.grant(acl, [3,4])
+client.acl.revoke(acl, [1,4])
+res = client.acl.get(acl)
+pp! res => {"permission" => "r--", "users" => [2, 3]}
+
+client.acl.list => [{"id" => 0, "permission" => "r--", "users" => [1, 2]}]
 ```
