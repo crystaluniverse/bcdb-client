@@ -241,6 +241,7 @@ module Bcdb
     property acl : Acl
 
     def initialize(@unixsocket, @db, @namespace, @pool_size=20)
+      @db = "db"
       @path = "/#{@db}/#{@namespace}"
       @pool = Bcdb::Connectionpool.new @pool_size, @unixsocket
       @acl = Acl.new unixsocket: unixsocket, path: "/acl", pool: pool
