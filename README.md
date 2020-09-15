@@ -83,4 +83,7 @@ res = client.acl.get(acl)
 pp! res => {"permission" => "r--", "users" => [2, 3]}
 
 client.acl.list => [{"id" => 0, "permission" => "r--", "users" => [1, 2]}]
+
 ```
+##### Dealing with another bcdb
+all APIs take an optional `threebot_id` if you want the local bcdb to delegate requests to another bcdb

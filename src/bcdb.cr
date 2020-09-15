@@ -4,11 +4,6 @@ require "socket"
 require "http/client"
 require "./errors"
 
-class Bcdb::NotFoundError < Exception 
-  def initialize (@err : String); end
-end
-
-
 class Bcdb::Result
   include JSON::Serializable
 
@@ -251,34 +246,53 @@ module Bcdb
       @acl = Acl.new unixsocket: unixsocket, path: "/acl", pool: pool
     end
 
-    def put(value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new)
+    def put(value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new, threebot_id : String = "")
       resp = nil
-      exec method: post, path: @path, headers: HTTP::Headers{
-             "X-Unix-Socket" => @unixsocket,
-             "Content-Type" => "application/json",
-             "x-tags" => tags.to_json
-           },
-           body: value 
       
+      headers = HTTP::Headers{
+        "X-Unix-Socket" => @unixsocket,
+        "Content-Type" => "application/json",
+        "x-tags" => tags.to_json
+      }
+
+      if threebot_id != ""
+        headers["x-threebot-id"] = threebot_id
+      end
+
+      exec method: post, path: @path, headers: headers, body: value 
       return resp.not_nil!.body.to_u64
     end
 
-    def update(key : Int32|Int64|UInt64, value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new)
+    def update(key : Int32|Int64|UInt64, value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new, threebot_id : String = "")
       resp = nil
-      exec method: put, path: "#{@path}/#{key.to_s}",
-           headers: HTTP::Headers{
-             "X-Unix-Socket" => @unixsocket,
-             "Content-Type" => "application/json",
-             "x-tags" => tags.to_json
-           }, body: value
+      headers = HTTP::Headers{
+        "X-Unix-Socket" => @unixsocket,
+        "Content-Type" => "application/json",
+        "x-tags" => tags.to_json
+      }
+      
+      if threebot_id != ""
+        headers["x-threebot-id"] = threebot_id
+      end
+
+      exec method: put, path: "#{@path}/#{key.to_s}", headers: headers, body: value
       if  resp.not_nil!.status_code != 200  
           raise Bcdb::NotFoundError.new "not found"
         end
     end
 
-    def get(key : Int32|Int64|UInt64)
+    def get(key : Int32|Int64|UInt64, threebot_id : String = "")
       resp = nil
-      exec method: get, path: "#{@path}/#{key.to_s}", headers: HTTP::Headers{"X-Unix-Socket" => @unixsocket, "Content-Type" => "application/json"}, body: nil
+      headers = HTTP::Headers{
+        "X-Unix-Socket" => @unixsocket,
+         "Content-Type" => "application/json"
+      }
+      
+      if threebot_id != ""
+        headers["x-threebot-id"] = threebot_id
+      end
+
+      exec method: get, path: "#{@path}/#{key.to_s}", headers: headers, body: nil
       if  resp.not_nil!.status_code != 200
         raise Bcdb::NotFoundError.new "not found"
       end
@@ -287,9 +301,18 @@ module Bcdb
     end
 
     # use key directly without namespace
-    def fetch(key : Int32|Int64|UInt64)
+    def fetch(key : Int32|Int64|UInt64, threebot_id : String = "")
       resp = nil
-      exec method: get, path: "/#{@db}/#{key.to_s}", headers: HTTP::Headers{"X-Unix-Socket" => @unixsocket, "Content-Type" => "application/json"}, body: nil
+      headers = HTTP::Headers{
+        "X-Unix-Socket" => @unixsocket,
+        "Content-Type" => "application/json"
+      }
+
+      if threebot_id != ""
+        headers["x-threebot-id"] = threebot_id
+      end
+
+      exec method: get, path: "/#{@db}/#{key.to_s}", headers: headers, body: nil
       if  resp.not_nil!.status_code != 200
         raise Bcdb::NotFoundError.new "not found"
       end
@@ -297,15 +320,25 @@ module Bcdb
       {"data" => resp.not_nil!.body, "tags": tags}
     end
 
-    def delete(key : Int32|Int64|UInt64)
+    def delete(key : Int32|Int64|UInt64, threebot_id : String = "")
       resp = nil
-      exec method: delete, path: "#{@path}/#{key.to_s}", headers: HTTP::Headers{"X-Unix-Socket" => @unixsocket, "Content-Type" => "application/json"}, body: nil
+      
+      headers = HTTP::Headers{
+        "X-Unix-Socket" => @unixsocket,
+        "Content-Type" => "application/json"
+      }
+
+      if threebot_id != ""
+        headers["x-threebot-id"] = threebot_id
+      end
+
+      exec method: delete, path: "#{@path}/#{key.to_s}", headers: headers, body: nil
       if resp.not_nil!.status_code != 200
         raise Bcdb::NotFoundError.new "not found"
       end
     end
 
-    def find(tags : Hash(String, String))
+    def find(tags : Hash(String, String), threebot_id : String = "")
       query = ""
       
       tags.each_key do |k|
@@ -317,10 +350,19 @@ module Bcdb
       ids = []of UInt64
       
       client = @pool.get
-        
+      
+      headers = HTTP::Headers{
+        "X-Unix-Socket" => @unixsocket,
+         "Content-Type" => "application/json"
+      }
+      
+      if threebot_id != ""
+        headers["x-threebot-id"] = threebot_id
+      end
+
       3.times do |i|
         begin
-          client.get path: "#{@path}?#{query}", headers: HTTP::Headers{"X-Unix-Socket" => @unixsocket, "Content-Type" => "application/json"} do |response|
+          client.get path: "#{@path}?#{query}", headers: headers do |response|
             c = 0 
             while gets = response.body_io.gets('\n', chomp: true)
                 io = IO::Memory.new(gets)
