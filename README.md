@@ -54,6 +54,12 @@ res["data"].should eq "a"
 res["tags"]["example"].should eq "value"
 res["tags"]["tag2"].should eq "v2"
 
+# PUT with Acl
+acl = 1_u64
+key_acl = c.put value: "b", tags: tags acl: acl
+res_acl = c.get(key_acl)
+res_acl["tags"][":acl"].should eq acl.to_s
+
 # UPDATE
 c.update(key, "b", tags)
 
