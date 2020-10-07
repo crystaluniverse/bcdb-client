@@ -35,7 +35,7 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
 - now you can talk to `bcdb` through http via unix socket `/tmp/bcdb.sock`
 
 ##### Copy zdb and bcdb to your local user **Optional**
-- You can copy zdb and bcdb to _/usr/local/bin_ to be able to use them from terminal dirctly as follow:
+- You can copy zdb and bcdb to _/usr/local/bin_ to be able to use them from terminal directly as follow:
   - `sudo cp {0-db folder path}/bin/zdb /usr/local/bin`
   - `sudo cp {bcdb folder path}/target/x86_64-unknown-linux-musl/release/bcdb /usr/local/bin`
 - Now you can use them as follow:
