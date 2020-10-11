@@ -247,7 +247,7 @@ module Bcdb
       @acl = Acl.new unixsocket: unixsocket, path: "/acl", pool: pool
     end
 
-    def put(value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new, threebot_id : String = "")
+    def put(value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new, threebot_id : String = "", acl : UInt64 = 0)
       resp = nil
       
       headers = HTTP::Headers{
@@ -260,11 +260,15 @@ module Bcdb
         headers["x-threebot-id"] = threebot_id
       end
 
+      if acl != 0_u64
+        headers["x-acl"] = acl.to_s
+      end
+      
       exec method: post, path: @path, headers: headers, body: value 
       return resp.not_nil!.body.to_u64
     end
 
-    def update(key : Int32|Int64|UInt64, value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new, threebot_id : String = "")
+    def update(key : Int32|Int64|UInt64, value : String, tags : Hash(String, String|Int32|Bool) = Hash(String, String|Int32|Bool).new, threebot_id : String = "", acl : UInt64 = 0)
       resp = nil
       headers = HTTP::Headers{
         "X-Unix-Socket" => @unixsocket,
@@ -274,6 +278,10 @@ module Bcdb
       
       if threebot_id != ""
         headers["x-threebot-id"] = threebot_id
+      end
+
+      if acl != 0_u64
+        headers["x-acl"] = acl.to_s
       end
 
       exec method: put, path: "#{@path}/#{key.to_s}", headers: headers, body: value

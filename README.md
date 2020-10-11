@@ -34,6 +34,17 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
 - run bcdb : `./bcdb --seed-file user.seed `
 - now you can talk to `bcdb` through http via unix socket `/tmp/bcdb.sock`
 
+##### Copy zdb and bcdb to your local user **Optional**
+- You can copy zdb and bcdb to _/usr/local/bin_ to be able to use them from terminal directly as follow:
+  - `sudo cp {0-db folder path}/bin/zdb /usr/local/bin`
+  - `sudo cp {bcdb folder path}/target/x86_64-unknown-linux-musl/release/bcdb /usr/local/bin`
+- Now you can use them as follow:
+  - For 0-db: `zdb --mode seq --data {path to data folder} --index {path to index folder}`
+  
+  > You have to choose the path of data and index folders as you prefer, the default path is the same folder zdb run from. 
+  
+  - For bcdb: `bcdb --seed-file user.seed`
+
 ##### Use the library in your application
 
 **WARNING**
@@ -83,6 +94,17 @@ res = client.acl.get(acl)
 pp! res => {"permission" => "r--", "users" => [2, 3]}
 
 client.acl.list => [{"id" => 0, "permission" => "r--", "users" => [1, 2]}]
+
+# Put & Update with Acls
+
+key_acl = c.put value: "b", tags: tags, acl: acl
+res_acl = c.get(key_acl)
+res_acl["tags"][":acl"].should eq acl.to_s
+
+new_acl = c.acl.set("rwd", [5,6])
+c.update key: key_acl, value: "b", tags: tags, acl: new_acl
+res_acl = c.get(key_acl)
+res_acl["tags"][":acl"].should eq new_acl.to_s
 
 ```
 ##### Dealing with another bcdb
