@@ -3,16 +3,21 @@ require "json"
 require "uuid"
 
 describe Bcdb::Client do
-   it "add acl to put function" do
+   it "add acl to put & update function" do
     client = Bcdb::Client.new unixsocket: "/tmp/bcdb.sock", db: "db", namespace: "example"
     random_tag = "#{UUID.random.to_s}"
     tags = {"example" => random_tag, "tag" => "abc"}
     acl = client.acl.set("r--", [1,2])
-
+    
     key = client.put value: "a", tags: tags, acl: acl
 
     res = client.get(key)
     res["tags"][":acl"].should eq acl.to_s
+
+    new_acl = client.acl.set("rw-", [3,4])
+    client.update key: key, value: "a", tags: tags, acl: new_acl
+    res = client.get(key)
+    res["tags"][":acl"].should eq new_acl.to_s
   end
   
   it "works" do

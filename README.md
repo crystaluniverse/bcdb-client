@@ -95,10 +95,16 @@ pp! res => {"permission" => "r--", "users" => [2, 3]}
 
 client.acl.list => [{"id" => 0, "permission" => "r--", "users" => [1, 2]}]
 
-# Put with Acls
+# Put & Update with Acls
+
 key_acl = c.put value: "b", tags: tags, acl: acl
 res_acl = c.get(key_acl)
 res_acl["tags"][":acl"].should eq acl.to_s
+
+new_acl = c.acl.set("rwd", [5,6])
+c.update key: key_acl, value: "b", tags: tags, acl: new_acl
+res_acl = c.get(key_acl)
+res_acl["tags"][":acl"].should eq new_acl.to_s
 
 ```
 ##### Dealing with another bcdb
