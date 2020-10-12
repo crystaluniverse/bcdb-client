@@ -48,7 +48,7 @@ describe Bcdb::Client do
 
     acl = client.acl.set("r--", [1,2])
     res = client.acl.get(acl)
-    pp! res
+
     res["permission"].should eq "r--"
     res["users"].size.should eq 2
     res["users"].as(Array(Int32)).sort.should eq [1,2]
@@ -73,9 +73,6 @@ describe Bcdb::Client do
     res["users"].size.should eq 2
     
     res["users"].as(Array(Int32)).sort.should eq [2, 3]
-
-    pp! client.acl.list
-
 
     (0..100).each do |_|
       res = client.find({"example" => random_tag})
@@ -109,7 +106,7 @@ describe Bcdb::Client do
 
   end
 
-  it "pool" do
+  it "pool2" do
     client = Bcdb::Client.new unixsocket: "/tmp/bcdb.sock", db: "db", namespace: "example" 
     random_tag = "#{UUID.random.to_s}"
     tags = {"example" => random_tag, "tag2" => "v2"}

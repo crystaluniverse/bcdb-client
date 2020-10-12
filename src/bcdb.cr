@@ -302,6 +302,11 @@ module Bcdb
       end
 
       exec method: get, path: "#{@path}/#{key.to_s}", headers: headers, body: nil
+      
+      if  resp.not_nil!.status_code == 401
+        raise Bcdb::UnAuthorizedError.new "Not enough permissions to retrieve data"
+      end
+
       if  resp.not_nil!.status_code != 200
         raise Bcdb::NotFoundError.new "not found"
       end

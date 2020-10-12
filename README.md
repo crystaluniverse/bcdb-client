@@ -19,12 +19,12 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
 
 ## Usage
 
-##### Download, compile & run 0-db (Backend for BCDB)
+### Download, compile & run 0-db (Backend for BCDB)
 - `git clone git@github.com:threefoldtech/0-db.git`
 - `cd 0-db && make`
 - `./zdb --mode seq`
 
-##### Download, compile & run BCDB (Backend for BCDB)
+### Download, compile & run BCDB (Backend for BCDB)
 - Install [Rust programming language](https://www.rust-lang.org/tools/install)
 - `git clone git@github.com:threefoldtech/bcdb.git`
 - `cd bcdb && make`
@@ -34,7 +34,7 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
 - run bcdb : `./bcdb --seed-file user.seed `
 - now you can talk to `bcdb` through http via unix socket `/tmp/bcdb.sock`
 
-##### Copy zdb and bcdb to your local user **Optional**
+### Copy zdb and bcdb to your local user **Optional**
 - You can copy zdb and bcdb to _/usr/local/bin_ to be able to use them from terminal directly as follow:
   - `sudo cp {0-db folder path}/bin/zdb /usr/local/bin`
   - `sudo cp {bcdb folder path}/target/x86_64-unknown-linux-musl/release/bcdb /usr/local/bin`
@@ -45,7 +45,7 @@ Rest client for [BCDB](https://github.com/threefoldtech/bcdb)
   
   - For bcdb: `bcdb --seed-file user.seed`
 
-##### Use the library in your application
+### Use the library in your application
 
 **WARNING**
 
@@ -107,5 +107,78 @@ res_acl = c.get(key_acl)
 res_acl["tags"][":acl"].should eq new_acl.to_s
 
 ```
-##### Dealing with another bcdb
+# BCDB cluster (With an Example)
 all APIs take an optional `threebot_id` if you want the local bcdb to delegate requests to another bcdb
+
+
+## Register 2 users on explorer**
+
+- **User 1**
+  - `./tfuser id create --name bcdbchat1.3bot --email bcdbchat1@threefold.io --output bcdbchat1.seed --description Bcdb test user`
+    ```
+    1:50PM INF generating seed mnemonic
+    1:50PM INF writing user identity filename=bcdbchat1.seed
+    Your ID is: 1607
+    ```
+
+  - Get info for this user `curl -X GET "https://explorer.devnet.grid.tf/explorer/users/1607" -H  "accept: application/json"`
+    ```
+    {"id":1607,"name":"bcdbchat1.3bot","email":"","pubkey":"0bcc59ed4d5967cebcf5fb7928433aa31735d1c3be25e489d08406034dc01479","host":"","description":""}
+    ```
+- - **User 2**
+  - `./tfuser id create --name bcdbchat2.3bot --email bcdbchat2@threefold.io --output bcdbchat2.seed --description Bcdb test user2 `
+    ```
+    1:50PM INF generating seed mnemonic
+    1:50PM INF writing user identity filename=bcdbchat2.seed
+    Your ID is: 1608
+    ```
+  - Get info for this user `curl -X GET "https://explorer.devnet.grid.tf/explorer/users/1608" -H  "accept: application/json"`
+    ```
+    {"id":1608,"name":"bcdbchat2.3bot","email":"","pubkey":"f4594db450f067ea6489ad6804917858845e44fad8d0a531188b06b10b7bb707","host":"","description":""}
+    ```
+
+## Create peers file `peers.json`
+resolving `threebot_ids` should be done by explorer, however we use `peers.json` file to resolve the hosts of bcdb, it's similar to local dns cache, because at the moment explorer has an issue keeping the hosts 
+
+  ```
+  {"id":1607,"name":"bcdbchat1.3bot","email":"","pubkey":"0bcc59ed4d5967cebcf5fb7928433aa31735d1c3be25e489d08406034dc01479","host":"http://localhost:50051","description":""}
+  {"id":1608,"name":"bcdbchat2.3bot","email":"","pubkey":"f4594db450f067ea6489ad6804917858845e44fad8d0a531188b06b10b7bb707", "host":"http://localhost:50052","description":""}
+  ```
+
+## Run
+
+**Node 1**
+- zdb : `./zdb --mode seq --data .zdb1/data --index ./zdb1/index`
+- bcdb: `./bcdb -r ./bcdb1.sock -m .meta/bcdb1.meta --seed-file bcdbchat1.seed --peers-file peers.json `
+
+**Node 2**
+- zdb : `./zdb --mode seq --data .zdb2/data --index ./zdb2/index --port 9901`
+- bcdb: `./bcdb -r ./bcdb2.sock -m .meta/bcdb2.meta --seed-file bcdbchat2.seed --peers-file peers.json -z 9901 -g 0.0.0.0:50052`
+
+## Testing
+
+This test is not included in the spec file, because it needs special cluster running which will lead this test to fail usually unless cluster is up and running
+
+  ```crystal
+  it "cluster" do
+      node1 = Bcdb::Client.new unixsocket: "/home/hamdy/work/chat/bcdb1.sock", db: "db", namespace: "example" 
+      key = node1.put("Hello world!")
+      node1.get(key)["data"].should eq "Hello world!"
+      node2 = Bcdb::Client.new unixsocket: "/home/hamdy/work/chat/bcdb2.sock", db: "db", namespace: "example"
+      begin
+        value = node2.get key: key, threebot_id: "1607"
+        raise "Should have raised exception"
+      rescue Bcdb::UnAuthorizedError; end
+
+      acl = node1.acl.set("r--", [1608])
+      key = node1.put value: "Hello world!", acl: acl
+      node2 = Bcdb::Client.new unixsocket: "/home/hamdy/work/chat/bcdb2.sock", db: "db", namespace: "example"
+      value = node2.get key: key, threebot_id: "1607"
+      
+      begin
+        value = node2.get key: key, threebot_id: "1607"
+      rescue Bcdb::UnAuthorizedError
+        raise "Should not have raised exception"
+      end
+    end
+    ```
